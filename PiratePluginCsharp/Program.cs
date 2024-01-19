@@ -69,8 +69,15 @@ app.MapPost("/arrrr", async (Data data) =>
                 await textWriter.FlushAsync();
             }
         }
-        //await textWriter.WriteLineAsync("data: [DONE]");
-        //await textWriter.FlushAsync();
+        CompletionChunk completionChunkDone = new();
+        completionChunkDone.Model = "gpt4";
+        completionChunkDone.Id = Guid.NewGuid().ToString();
+        completionChunkDone.Choices = new CompletionChunk.Choice[1];
+        completionChunkDone.Choices[0] = new CompletionChunk.Choice() { FinishReason = "stop" };
+        string stopLine = $"data: {JsonSerializer.Serialize(completionChunkDone)}";
+        await textWriter.WriteLineAsync(stopLine);
+        await textWriter.WriteLineAsync(string.Empty);
+        await textWriter.FlushAsync();
     }
 
     return Results.Stream(StreamContentUpdatesAsync, "text/event-stream");
