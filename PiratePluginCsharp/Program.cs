@@ -66,7 +66,8 @@ app.MapPost("/arrrr", async (Data data) =>
                     [
                         new()
                         {
-                            Delta = new() { Content = response.ContentUpdate }
+                            Delta = new() { Content = response.ContentUpdate },
+                            FinishReason = response.FinishReason.HasValue ? response.FinishReason.Value.ToString() : null
                         }
                     ]
                 };
@@ -76,27 +77,31 @@ app.MapPost("/arrrr", async (Data data) =>
                 await textWriter.WriteLineAsync(string.Empty);
                 await textWriter.FlushAsync();
             }
-        }
-
-        // create stop chunk
-        CompletionChunk completionChunkDone = new()
-        {
-            Model = "gpt4",
-            Id = Guid.NewGuid().ToString(),
-            Choices =
-            [
-                new CompletionChunk.Choice()
+            else
+            {
+                if (response.FinishReason.HasValue)
                 {
-                    FinishReason = "stop"
+                    CompletionChunk completionChunkDone = new()
+                    {
+                        Model = "gpt4",
+                        Id = Guid.NewGuid().ToString(),
+                        Choices =
+                        [
+                            new()
+                            {
+                                Delta = new() { Content = null },
+                                FinishReason = response.FinishReason.ToString()
+                            }
+                        ]
+                    };
+                    string dataLine = $"data: {JsonSerializer.Serialize(completionChunkDone)}";
+                    await textWriter.WriteLineAsync(dataLine);
+                    await textWriter.WriteLineAsync(string.Empty);
+                    await textWriter.FlushAsync();
                 }
-            ]
-        };
 
-        // write stop line
-        string stopLine = $"data: {JsonSerializer.Serialize(completionChunkDone)}";
-        await textWriter.WriteLineAsync(stopLine);
-        await textWriter.WriteLineAsync(string.Empty);
-        await textWriter.FlushAsync();
+            }
+        }
 
         // write done line
         await textWriter.WriteLineAsync("data: [DONE]");
