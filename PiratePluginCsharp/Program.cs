@@ -2,10 +2,6 @@ using Azure;
 using Azure.AI.OpenAI;
 using PiratePluginCsharp;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
-using Choice = PiratePluginCsharp.Choice;
 
 var builder = WebApplication.CreateBuilder(args);
 
