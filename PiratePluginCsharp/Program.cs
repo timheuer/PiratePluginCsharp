@@ -2,6 +2,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using PiratePluginCsharp;
 using System.Diagnostics;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,7 @@ app.MapPost("/arrrr", async (Data data) =>
         Messages =
             {
                 // The system message represents instructions or other guidance about how the assistant should behave
-                new ChatRequestSystemMessage("You are a helpful assistant. You will talk like a pirate. You will limite your response to only two sentences each time."),
+                new ChatRequestSystemMessage("You are a helpful assistant. You will talk like a pirate."),
                 // User messages represent current or historical input from the end user
                 new ChatRequestUserMessage("Can you help me?"),
                 // Assistant messages represent historical responses from the assistant
@@ -52,8 +53,9 @@ app.MapPost("/arrrr", async (Data data) =>
 
     // this feels super hack, still doesn't work even
     // feels like i'm using the Azure SDK wrong and that I should be more easily be able to return the streamed responses
-    async IAsyncEnumerable<CompletionChunk> StreamContentUpdates()
+    async Task StreamContentUpdatesAsync(Stream stream)
     {
+        TextWriter textWriter = new StreamWriter(stream);
         var responseStream = await client.GetChatCompletionsStreamingAsync(chatCompletionsOptions);
         await foreach (var response in responseStream)
         {
@@ -64,14 +66,20 @@ app.MapPost("/arrrr", async (Data data) =>
                 completionChunk.Id = response.Id;
                 completionChunk.Choices = new CompletionChunk.Choice[1];
                 completionChunk.Choices[0] = new CompletionChunk.Choice() { Delta = new() { Content = response.ContentUpdate } };
-                yield return completionChunk;
+
+                string dataLine = $"data: {JsonSerializer.Serialize(completionChunk)}";
+                await textWriter.WriteLineAsync(dataLine);
+                await textWriter.WriteLineAsync(string.Empty);
+                await textWriter.FlushAsync();
             }
         }
+        await textWriter.WriteLineAsync($"data: [DONE]");
+        await textWriter.FlushAsync();
     }
-    
-    return StreamContentUpdates();
-    
-    
+
+    return Results.Stream(StreamContentUpdatesAsync, "text/event-stream");
+
+
     // stuck here
 })
 .WithName("arrrr")

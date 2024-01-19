@@ -14,7 +14,7 @@ public class CompletionChunk
     public string? Object { get; set; } = "chat.completion.chunk";
 
     [JsonPropertyName("created")]
-    public DateTimeOffset Created { get; set; } = DateTimeOffset.UtcNow;
+    public long Created { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     [JsonPropertyName("choices")]
     public Choice[]? Choices { get; set; }
