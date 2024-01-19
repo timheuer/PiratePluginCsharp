@@ -27,19 +27,19 @@ app.Map("/oauth/callback", () =>
 .WithOpenApi();
 #endregion
 
+Uri azureOpenAIResourceUri = new(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_ENDPOINT"));
+AzureKeyCredential azureOpenAIApiKey = new(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY"));
+OpenAIClient client = new(azureOpenAIResourceUri, azureOpenAIApiKey);
+
 app.MapPost("/arrrr", async (Data data) =>
 {
-    Uri azureOpenAIResourceUri = new(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_ENDPOINT"));
-    AzureKeyCredential azureOpenAIApiKey = new(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY"));
-    OpenAIClient client = new(azureOpenAIResourceUri, azureOpenAIApiKey);
-
     var chatCompletionsOptions = new ChatCompletionsOptions()
     {
         DeploymentName = "gpt4", // Use DeploymentName for "model" with non-Azure clients
         Messages =
             {
                 // The system message represents instructions or other guidance about how the assistant should behave
-                new ChatRequestSystemMessage("You are a helpful assistant. You will talk like a pirate."),
+                new ChatRequestSystemMessage("You are a helpful assistant. You will give all responses as if you were a pirate giving pirate advice. You will talk like a pirate."),
                 // User messages represent current or historical input from the end user
                 new ChatRequestUserMessage("Can you help me?"),
                 // Assistant messages represent historical responses from the assistant
@@ -57,11 +57,18 @@ app.MapPost("/arrrr", async (Data data) =>
         {
             if (!string.IsNullOrEmpty(response.ContentUpdate))
             {
-                CompletionChunk completionChunk = new();
-                completionChunk.Model = "gpt4";
-                completionChunk.Id = response.Id;
-                completionChunk.Choices = new CompletionChunk.Choice[1];
-                completionChunk.Choices[0] = new CompletionChunk.Choice() { Delta = new() { Content = response.ContentUpdate } };
+                CompletionChunk completionChunk = new()
+                {
+                    Model = "gpt4",
+                    Id = response.Id,
+                    Choices =
+                    [
+                        new()
+                        {
+                            Delta = new() { Content = response.ContentUpdate }
+                        }
+                    ]
+                };
 
                 string dataLine = $"data: {JsonSerializer.Serialize(completionChunk)}";
                 await textWriter.WriteLineAsync(dataLine);
@@ -69,11 +76,20 @@ app.MapPost("/arrrr", async (Data data) =>
                 await textWriter.FlushAsync();
             }
         }
-        CompletionChunk completionChunkDone = new();
-        completionChunkDone.Model = "gpt4";
-        completionChunkDone.Id = Guid.NewGuid().ToString();
-        completionChunkDone.Choices = new CompletionChunk.Choice[1];
-        completionChunkDone.Choices[0] = new CompletionChunk.Choice() { FinishReason = "stop" };
+
+        CompletionChunk completionChunkDone = new()
+        {
+            Model = "gpt4",
+            Id = Guid.NewGuid().ToString(),
+            Choices =
+            [
+                new CompletionChunk.Choice()
+                {
+                    FinishReason = "stop"
+                }
+            ]
+        };
+
         string stopLine = $"data: {JsonSerializer.Serialize(completionChunkDone)}";
         await textWriter.WriteLineAsync(stopLine);
         await textWriter.WriteLineAsync(string.Empty);
