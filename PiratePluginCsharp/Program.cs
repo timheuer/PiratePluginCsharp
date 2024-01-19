@@ -47,7 +47,7 @@ app.MapPost("/arrrr", async (Data data) =>
                 new ChatRequestUserMessage("Can you help me?"),
                 // Assistant messages represent historical responses from the assistant
                 new ChatRequestAssistantMessage("Arrrr! Of course, me hearty! What can I do for ye?"),
-                new ChatRequestUserMessage("What's the best way to train a parrot?"),
+                new ChatRequestUserMessage(data.messages.LastOrDefault(m=>m.Role == "user")?.Content),
             }
     };
 
@@ -73,14 +73,9 @@ app.MapPost("/arrrr", async (Data data) =>
                 await textWriter.FlushAsync();
             }
         }
-        await textWriter.WriteLineAsync($"data: [DONE]");
-        await textWriter.FlushAsync();
     }
 
     return Results.Stream(StreamContentUpdatesAsync, "text/event-stream");
-
-
-    // stuck here
 })
 .WithName("arrrr")
 .WithOpenApi();
