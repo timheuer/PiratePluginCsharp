@@ -1,0 +1,17 @@
+@PiratePluginCsharp_HostAddress = http://localhost:5053
+
+POST {{PiratePluginCsharp_HostAddress}}/arrrr/
+Content-Type: application/json
+
+{
+"messages": [ 
+  {
+    "role": "user", 
+    "content": "How do you train a parrot?", 
+    "copilot_references": [
+      "file","foo.cs"
+    ] 
+  }
+] 
+}
+###
