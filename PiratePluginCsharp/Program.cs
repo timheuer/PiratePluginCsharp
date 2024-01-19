@@ -6,14 +6,11 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -51,8 +48,7 @@ app.MapPost("/arrrr", async (Data data) =>
             }
     };
 
-    // this feels super hack, still doesn't work even
-    // feels like i'm using the Azure SDK wrong and that I should be more easily be able to return the streamed responses
+    // stream the response
     async Task StreamContentUpdatesAsync(Stream stream)
     {
         TextWriter textWriter = new StreamWriter(stream);
@@ -73,6 +69,8 @@ app.MapPost("/arrrr", async (Data data) =>
                 await textWriter.FlushAsync();
             }
         }
+        //await textWriter.WriteLineAsync("data: [DONE]");
+        //await textWriter.FlushAsync();
     }
 
     return Results.Stream(StreamContentUpdatesAsync, "text/event-stream");
