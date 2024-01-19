@@ -57,6 +57,7 @@ app.MapPost("/arrrr", async (Data data) =>
         {
             if (!string.IsNullOrEmpty(response.ContentUpdate))
             {
+                // create the expected OAI chunk format
                 CompletionChunk completionChunk = new()
                 {
                     Model = "gpt4",
@@ -77,6 +78,7 @@ app.MapPost("/arrrr", async (Data data) =>
             }
         }
 
+        // create stop chunk
         CompletionChunk completionChunkDone = new()
         {
             Model = "gpt4",
@@ -90,8 +92,14 @@ app.MapPost("/arrrr", async (Data data) =>
             ]
         };
 
+        // write stop line
         string stopLine = $"data: {JsonSerializer.Serialize(completionChunkDone)}";
         await textWriter.WriteLineAsync(stopLine);
+        await textWriter.WriteLineAsync(string.Empty);
+        await textWriter.FlushAsync();
+
+        // write done line
+        await textWriter.WriteLineAsync("data: [DONE]");
         await textWriter.WriteLineAsync(string.Empty);
         await textWriter.FlushAsync();
     }
