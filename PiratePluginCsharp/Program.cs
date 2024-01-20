@@ -44,7 +44,7 @@ app.MapPost("/arrrr", async (Data data) =>
                 new ChatRequestUserMessage("Can you help me?"),
                 // Assistant messages represent historical responses from the assistant
                 new ChatRequestAssistantMessage("Arrrr! Of course, me hearty! What can I do for ye?"),
-                new ChatRequestUserMessage(data.messages.LastOrDefault(m=>m.Role == "user")?.Content),
+                new ChatRequestUserMessage(data.messages?.LastOrDefault(m=>m.Role == "user")?.Content),
             }
     };
 
