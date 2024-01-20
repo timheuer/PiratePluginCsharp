@@ -55,52 +55,25 @@ app.MapPost("/arrrr", async (Data data) =>
         var responseStream = await client.GetChatCompletionsStreamingAsync(chatCompletionsOptions);
         await foreach (var response in responseStream)
         {
-            if (!string.IsNullOrEmpty(response.ContentUpdate))
+            // create the expected OAI chunk format
+            CompletionChunk completionChunk = new()
             {
-                // create the expected OAI chunk format
-                CompletionChunk completionChunk = new()
-                {
-                    Model = "gpt4",
-                    Id = response.Id,
-                    Choices =
-                    [
-                        new()
+                Model = "gpt4",
+                Id = response.Id,
+                Choices =
+                [
+                    new()
                         {
                             Delta = new() { Content = response.ContentUpdate },
                             FinishReason = response.FinishReason.HasValue ? response.FinishReason.Value.ToString() : null
                         }
-                    ]
-                };
+                ]
+            };
 
-                string dataLine = $"data: {JsonSerializer.Serialize(completionChunk)}";
-                await textWriter.WriteLineAsync(dataLine);
-                await textWriter.WriteLineAsync(string.Empty);
-                await textWriter.FlushAsync();
-            }
-            else
-            {
-                if (response.FinishReason.HasValue)
-                {
-                    CompletionChunk completionChunkDone = new()
-                    {
-                        Model = "gpt4",
-                        Id = Guid.NewGuid().ToString(),
-                        Choices =
-                        [
-                            new()
-                            {
-                                Delta = new() { Content = null },
-                                FinishReason = response.FinishReason.ToString()
-                            }
-                        ]
-                    };
-                    string dataLine = $"data: {JsonSerializer.Serialize(completionChunkDone)}";
-                    await textWriter.WriteLineAsync(dataLine);
-                    await textWriter.WriteLineAsync(string.Empty);
-                    await textWriter.FlushAsync();
-                }
-
-            }
+            string dataLine = $"data: {JsonSerializer.Serialize(completionChunk)}";
+            await textWriter.WriteLineAsync(dataLine);
+            await textWriter.WriteLineAsync(string.Empty);
+            await textWriter.FlushAsync();
         }
 
         // write done line
