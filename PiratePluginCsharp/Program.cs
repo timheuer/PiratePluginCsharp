@@ -35,7 +35,7 @@ app.MapPost("/arrrr", async (Data data) =>
 {
     var chatCompletionsOptions = new ChatCompletionsOptions()
     {
-        DeploymentName = "gpt4", // Use DeploymentName for "model" with non-Azure clients
+        DeploymentName = "chat", // Use DeploymentName for "model" with non-Azure clients
         Messages =
             {
                 // The system message represents instructions or other guidance about how the assistant should behave
@@ -58,7 +58,7 @@ app.MapPost("/arrrr", async (Data data) =>
             // create the expected OAI chunk format
             CompletionChunk completionChunk = new()
             {
-                Model = "gpt4",
+                Model = "gpt-3.5-turbo",
                 Id = response.Id,
                 Choices =
                 [
