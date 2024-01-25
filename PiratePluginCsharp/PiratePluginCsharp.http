@@ -1,5 +1,6 @@
 @PiratePluginCsharp_HostAddress = http://localhost:5053
-
+@FunctionsURI = https://pirate-agent-function.azurewebsites.net/api/PiratePlugin
+@FunctionsURILocal = http://localhost:7078/api/PiratePlugin
 POST {{PiratePluginCsharp_HostAddress}}/arrrr/
 Content-Type: application/json
 
@@ -15,3 +16,17 @@ Content-Type: application/json
 ] 
 }
 ###
+POST {{FunctionsURILocal}}/
+Content-Type: application/json
+
+{
+"messages": [ 
+  {
+    "role": "user", 
+    "content": "How do you train a parrot?", 
+    "copilot_references": [
+      "file","foo.cs"
+    ] 
+  }
+] 
+}
